@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -79,20 +79,42 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if strings.Contains(res.Header.Get("content-type"), "application/atom+xml") {
-		buf, err := io.ReadAll(res.Body)
-		if err != nil {
-			w.WriteHeader(500)
-			w.Write([]byte("PCCCache failed to read responce: " + err.Error()))
-			log.Print("Failed to read responce: ", err)
-			return
-		}
-		result := strings.ReplaceAll(string(buf), sendTo, sentFrom)
-		raw := []byte(result)
-		w.Header().Set("Content-Length", strconv.Itoa(len(raw)))
-		w.WriteHeader(res.StatusCode)
-		w.Write(raw)
+		copyReplace(w, res.Body, []byte(sendTo), []byte(sentFrom))
 	} else {
 		w.WriteHeader(res.StatusCode)
 		io.Copy(w, res.Body)
+	}
+}
+
+func copyReplace(w io.Writer, r io.Reader, from []byte, to []byte) {
+	var buf = &bytes.Buffer{}
+	var matching int = 0
+	var done int = 0
+	for {
+		if done == buf.Len() {
+			io.CopyN(w, buf, int64(done-matching))
+			done = matching
+		}
+		if buf.Len() == 0 {
+			size, err := io.CopyN(buf, r, 1024)
+			if err != nil && err != io.EOF {
+				log.Panic("Failed to read responce", err)
+			}
+			if size == 0 {
+				return
+			}
+		}
+		if buf.Bytes()[done] == from[matching] {
+			matching++
+		}
+		done++
+		if matching == len(from) {
+			// matched
+			io.CopyN(w, buf, int64(done-matching))
+			buf.Next(matching)
+			w.Write(to)
+			matching = 0
+			done = 0
+		}
 	}
 }
