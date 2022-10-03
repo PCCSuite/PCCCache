@@ -36,9 +36,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var dest string
+	var sentFrom string
+	var sendTo string
 	for k, v := range convert {
 		if strings.HasPrefix(r.RequestURI, k) {
 			dest = strings.Replace(r.RequestURI, k, v, 1)
+			sentFrom = "http://" + r.Host + k
+			sendTo = v
 			break
 		}
 	}
@@ -51,7 +55,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	res, err := http.Get(dest)
 	if err != nil {
 		w.WriteHeader(500)
-		w.Write([]byte("PCCProxy failed to request: " + err.Error()))
+		w.Write([]byte("PCCCache failed to request: " + err.Error()))
 		log.Print("Failed to read request: ", err)
 		return
 	}
@@ -65,6 +69,19 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	w.WriteHeader(res.StatusCode)
-	io.Copy(w, res.Body)
+	if res.Header.Get("content-type") == "application/atom+xml" {
+		buf, err := io.ReadAll(res.Body)
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte("PCCCache failed to read responce: " + err.Error()))
+			log.Print("Failed to read responce: ", err)
+			return
+		}
+		result := strings.ReplaceAll(string(buf), sendTo, sentFrom)
+		w.WriteHeader(res.StatusCode)
+		w.Write([]byte(result))
+	} else {
+		w.WriteHeader(res.StatusCode)
+		io.Copy(w, res.Body)
+	}
 }
