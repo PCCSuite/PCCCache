@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -86,8 +87,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		result := strings.ReplaceAll(string(buf), sendTo, sentFrom)
+		raw := []byte(result)
+		w.Header().Set("Content-Length", strconv.Itoa(len(raw)))
 		w.WriteHeader(res.StatusCode)
-		w.Write([]byte(result))
+		w.Write(raw)
 	} else {
 		w.WriteHeader(res.StatusCode)
 		io.Copy(w, res.Body)
