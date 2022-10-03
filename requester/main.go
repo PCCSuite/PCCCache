@@ -77,7 +77,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	if res.Header.Get("content-type") == "application/atom+xml" {
+	if strings.Contains(res.Header.Get("content-type"), "application/atom+xml") {
 		buf, err := io.ReadAll(res.Body)
 		if err != nil {
 			w.WriteHeader(500)
