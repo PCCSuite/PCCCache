@@ -38,10 +38,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var dest string
 	var sentFrom string
 	var sendTo string
+	proto := "http"
+	if r.Header.Get("X-Forwarded-Proto") != "" {
+		proto = r.Header.Get("X-Forwarded-Proto")
+	}
+	host := r.Host
+	if r.Header.Get("X-Forwarded-Host") != "" {
+		host = r.Header.Get("X-Forwarded-Host")
+	}
 	for k, v := range convert {
 		if strings.HasPrefix(r.RequestURI, k) {
 			dest = strings.Replace(r.RequestURI, k, v, 1)
-			sentFrom = "http://" + r.Host + k
+			sentFrom = proto + "://" + host + k
 			sendTo = v
 			break
 		}
