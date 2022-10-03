@@ -1,0 +1,19 @@
+version: '3'
+services:
+  cacher:
+    image: nginx:stable-alpine
+    volumes:
+      - type: bind
+        source: ${PCC_CACHE_DATA}/cache/
+        target: /data
+      - type: bind
+        source: cacher/nginx.conf
+        target: /etc/nginx/nginx.conf
+    ports:
+      - "8005:80"
+    restart: unless-stopped
+    pull_policy: always
+  requester:
+    image: ghcr.io/pccsuite/pcccache:latest
+    restart: unless-stopped
+    pull_policy: always
