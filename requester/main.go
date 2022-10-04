@@ -24,10 +24,12 @@ type Handler struct {
 }
 
 var convert = map[string]string{
-	"/choco/":  "https://community.chocolatey.org/api/v2/",
-	"/debian/": "http://ftp.jp.debian.org/debian/",
-	"/arch/":   "http://ftp.jaist.ac.jp/pub/Linux/ArchLinux/",
-	"/any/":    "",
+	"/choco/":           "https://community.chocolatey.org/api/v2/",
+	"/debian/":          "http://ftp.jp.debian.org/debian/",
+	"/debian-security/": "http://security.debian.org/debian-security/",
+	"/proxmox/":         "http://download.proxmox.com/debian/",
+	"/arch/":            "http://ftp.jaist.ac.jp/pub/Linux/ArchLinux/",
+	"/any/":             "",
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
