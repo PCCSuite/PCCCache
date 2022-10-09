@@ -92,7 +92,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		str := buf.String()
 		buf.Reset()
-		buf.WriteString(strings.ReplaceAll(str, sendTo, sentFrom))
+		str = strings.ReplaceAll(str, sendTo, sentFrom)
+		if strings.HasPrefix(sendTo, "https://") {
+			str = strings.ReplaceAll(str, strings.Replace(sendTo, "https://", "http://", 1), sentFrom)
+		}
+		if strings.HasPrefix(sendTo, "http://") {
+			str = strings.ReplaceAll(str, strings.Replace(sendTo, "http://", "https://", 1), sentFrom)
+		}
+		buf.WriteString(str)
 		w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 		w.WriteHeader(res.StatusCode)
 		io.Copy(w, buf)
