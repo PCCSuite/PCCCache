@@ -29,6 +29,7 @@ var convert = map[string]string{
 	"/debian-security/": "http://security.debian.org/debian-security/",
 	"/proxmox/":         "http://download.proxmox.com/debian/",
 	"/arch/":            "http://ftp.jaist.ac.jp/pub/Linux/ArchLinux/",
+	"/alpine/":          "http://dl-cdn.alpinelinux.org/alpine/",
 	"/any/":             "",
 }
 
